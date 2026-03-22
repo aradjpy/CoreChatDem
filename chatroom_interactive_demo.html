@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chatroom Demo | CoreChat</title>
+  <style>
+:root{
+  --bg:#0b1020;
+  --bg-2:#121933;
+  --panel:#11182b;
+  --panel-2:#18213b;
+  --text:#f5f7ff;
+  --muted:#9aa6c7;
+  --accent:#6ea8ff;
+  --accent-2:#9b7bff;
+  --border:rgba(255,255,255,0.10);
+  --shadow:0 20px 60px rgba(0,0,0,0.35);
+  --radius:24px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(110,168,255,0.18), transparent 28%),
+    radial-gradient(circle at top right, rgba(155,123,255,0.18), transparent 24%),
+    linear-gradient(135deg, var(--bg), #060913 55%, #0b132a 100%);
+  color:var(--text);
+  min-height:100vh;
+}
+a{text-decoration:none;color:inherit}
+button,input,textarea,select{
+  font:inherit;
+  -webkit-appearance:none;
+  appearance:none;
+}
+input, textarea, select{
+  width:100%;
+  background:rgba(255,255,255,0.05);
+  border:1px solid var(--border);
+  border-radius:16px;
+  color:var(--text);
+  padding:15px 16px;
+  outline:none;
+}
+input::placeholder, textarea::placeholder{ color:#a7b3d3; }
+input:focus, textarea:focus, select:focus{
+  border-color:rgba(110,168,255,0.55);
+  box-shadow:0 0 0 4px rgba(110,168,255,0.12);
+}
+textarea{ min-height:58px; max-height:170px; resize:vertical; }
+.brand{ display:flex; align-items:center; gap:14px; }
+.logo{
+  width:50px;height:50px;border-radius:16px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  display:grid;place-items:center;font-weight:800;font-size:1.2rem;
+  box-shadow:0 10px 30px rgba(110,168,255,0.28);
+  color:#071224;
+}
+.avatar{
+  width:42px;height:42px;border-radius:50%;
+  display:grid;place-items:center;font-weight:800;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  color:#071224;
+  flex-shrink:0;
+}
+.btn{
+  border:none; cursor:pointer; padding:14px 18px; border-radius:16px; font-weight:700;
+  transition:transform .2s ease, opacity .2s ease, box-shadow .2s ease;
+  display:inline-flex;align-items:center;justify-content:center; white-space:nowrap;
+}
+.btn:hover{transform:translateY(-2px)}
+.btn-primary{
+  color:#071224;
+  background:linear-gradient(135deg,#8ec0ff,#b29cff);
+  box-shadow:0 12px 30px rgba(110,168,255,0.18);
+}
+.btn-secondary{
+  color:var(--text);
+  background:rgba(255,255,255,0.06);
+  border:1px solid var(--border);
+}
+.top-nav{
+  min-height:72px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between; gap:18px; padding:14px 22px;
+}
+.top-actions{ display:flex; align-items:center; gap:12px; }
+.search-wrap{ flex:1; max-width:650px; }
+.speed-tag{
+  padding:10px 14px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.05);
+  color:#dbe6ff;
+  font-size:.9rem;
+  font-weight:700;
+}
+.chat-layout{
+  display:grid; grid-template-columns:320px 1fr; height:calc(100vh - 72px);
+}
+.sidebar{
+  border-right:1px solid var(--border); display:flex; flex-direction:column; min-height:0;
+}
+.sidebar-header{ padding:18px 18px 10px; }
+.sidebar-header h2{font-size:1.2rem}
+.sidebar-header p{color:var(--muted);font-size:.92rem;margin-top:5px}
+.chat-list{ overflow:auto; padding:8px 10px 16px; }
+.chat-item{
+  padding:14px; border-radius:18px; border:1px solid transparent; display:flex; gap:12px;
+  margin-bottom:10px; transition:.2s ease;
+}
+.chat-item:hover,.chat-item.active{ background:rgba(255,255,255,0.05); border-color:var(--border); }
+.chat-item .meta{ min-width:0; }
+.chat-item .meta h4{ font-size:.98rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.chat-item .meta p{
+  color:var(--muted); font-size:.88rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:4px;
+}
+.chat-main{ display:flex; flex-direction:column; min-width:0; }
+.chat-head{
+  padding:16px 20px; border-bottom:1px solid var(--border); display:flex;align-items:center;gap:14px;
+}
+.chat-head .title h3{font-size:1.1rem}
+.chat-head .title p{color:var(--muted);font-size:.9rem}
+.messages{
+  flex:1; overflow:auto; padding:24px; display:flex; flex-direction:column; gap:16px;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(110,168,255,0.06), transparent 26%),
+    linear-gradient(180deg, rgba(255,255,255,0.02), transparent 18%);
+}
+.bubble{
+  max-width:min(72%,680px); padding:14px 16px; border-radius:20px; line-height:1.65; border:1px solid var(--border);
+}
+.bubble.sent{
+  align-self:flex-end; background:linear-gradient(135deg, rgba(110,168,255,0.25), rgba(155,123,255,0.2));
+}
+.bubble.received{ align-self:flex-start; background:rgba(255,255,255,0.05); }
+.bubble .time{ margin-top:8px; display:block; color:var(--muted); font-size:.8rem; }
+.voice-bubble{ display:flex; flex-direction:column; gap:12px; }
+.voice-pill{
+  display:flex; align-items:center; gap:10px; padding:10px 12px; background:rgba(255,255,255,0.06);
+  border-radius:999px; min-width:220px; width:fit-content;
+}
+.voice-wave{
+  flex:1; height:8px; width:120px; border-radius:999px;
+  background:linear-gradient(90deg, rgba(255,255,255,0.25), rgba(110,168,255,0.75), rgba(255,255,255,0.25));
+}
+.voice-duration{ font-size:.85rem; color:var(--muted); }
+.bubble audio{
+  width:min(100%,320px);
+  height:40px;
+  opacity:.95;
+}
+.media-label{
+  margin-top:10px;
+  padding:10px 12px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.04);
+  color:#dce7ff;
+  font-size:.9rem;
+}
+.compose{
+  border-top:1px solid var(--border); padding:14px 18px; background:rgba(10,14,25,0.7);
+}
+.compose form{
+  display:grid; grid-template-columns:auto auto 1fr auto; gap:12px; align-items:end;
+}
+.file-btn,.voice-btn{
+  min-width:56px; height:56px; border-radius:16px; border:1px solid var(--border);
+  background:rgba(255,255,255,0.05); color:var(--text); cursor:pointer; display:grid; place-items:center;
+}
+.voice-btn.recording{
+  background:linear-gradient(135deg, rgba(255,97,97,0.25), rgba(255,140,140,0.18));
+  border-color:rgba(255,120,120,0.55);
+  box-shadow:0 0 0 4px rgba(255,120,120,0.12);
+}
+.field{ display:grid; gap:8px; }
+.compose-meta{
+  margin-top:10px; font-size:.9rem; color:var(--muted); display:flex; gap:12px; flex-wrap:wrap;
+}
+.compose-chip{
+  padding:8px 12px; border-radius:999px; border:1px solid var(--border); background:rgba(255,255,255,0.04);
+}
+.notice{
+  margin-left:auto;
+  font-size:.85rem;
+  color:var(--muted);
+}
+.demo-tag{
+  margin-left:auto;
+  padding:8px 12px;
+  border-radius:999px;
+  background:rgba(255,255,255,.05);
+  border:1px solid var(--border);
+  color:var(--muted);
+  font-size:.85rem;
+}
+@media (max-width: 1200px){
+  .top-nav{ flex-wrap:wrap; }
+  .search-wrap{ order:3; width:100%; max-width:none; }
+}
+@media (max-width: 980px){
+  .chat-layout{grid-template-columns:1fr}
+  .sidebar{display:none}
+}
+@media (max-width: 720px){
+  .compose form{grid-template-columns:1fr 1fr}
+  .field{grid-column:1 / -1}
+  .top-actions{width:100%; justify-content:space-between; flex-wrap:wrap;}
+}
+@media (max-width: 640px){
+  .bubble{max-width:90%}
+}
+  </style>
+</head>
+<body>
+  <div class="top-nav">
+    <div class="brand">
+      <div class="logo" style="width:42px;height:42px;">C</div>
+      <div>
+        <h1 style="font-size:1rem;">CoreChat</h1>
+        <p style="font-size:.82rem;color:var(--muted);">Community conversations</p>
+      </div>
+    </div>
+
+    <form class="search-wrap" action="#" method="get" onsubmit="return false;">
+      <input type="search" name="q" placeholder="Search users, messages, groups, topics..." />
+    </form>
+
+    <div class="top-actions">
+      <div class="speed-tag" id="speedTag">Internet speed: checking…</div>
+      <a class="btn btn-secondary" href="similar_people_demo.html">Find people with similar interests</a>
+      <div class="avatar">A</div>
+    </div>
+  </div>
+
+  <main class="chat-layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>Recent chats</h2>
+        <p>Scrollable list of all conversations</p>
+      </div>
+
+      <div class="chat-list">
+        <div class="chat-item active"><div class="avatar">L</div><div class="meta"><h4>Lina Carter</h4><p>Let’s finalize the idea tonight.</p></div></div>
+      </div>
+    </aside>
+
+    <section class="chat-main">
+      <div class="chat-head">
+        <div class="avatar">L</div>
+        <div class="title">
+          <h3>Lina Carter</h3>
+          <p>Online now</p>
+        </div>
+        <div class="demo-tag">Interactive demo</div>
+      </div>
+
+      <div class="messages" id="messages">
+        <div class="bubble received"><p>Hey, I saw your idea about combining chat with shared interest discovery.</p><span class="time">10:14 AM</span></div>
+        <div class="bubble sent"><p>Exactly. I want onboarding to shape conversations from the start.</p><span class="time">10:16 AM</span></div>
+        <div class="bubble received">
+          <div class="voice-bubble">
+            <div class="voice-pill">
+              <span>🎙️</span>
+              <div class="voice-wave"></div>
+              <span class="voice-duration">0:14</span>
+            </div>
+            <div class="media-label">Transcribed: "you said something in the voice"</div>
+          </div>
+          <span class="time">10:18 AM</span>
+        </div>
+      </div>
+
+      <div class="compose">
+        <form id="chatForm" action="#" method="post" enctype="multipart/form-data">
+          <label class="file-btn" for="image_input" title="Send image">+</label>
+          <input id="image_input" name="image" type="file" accept="image/*" hidden>
+
+          <button class="voice-btn" id="voiceBtn" type="button" title="Record voice message">🎙️</button>
+
+          <div class="field" style="margin:0;">
+            <textarea id="messageInput" name="message" placeholder="Type a message, attach an image, or record a voice note..."></textarea>
+          </div>
+
+          <button class="btn btn-primary" type="submit">Send</button>
+        </form>
+
+        <div class="compose-meta">
+          <span class="compose-chip" id="recordStatus">No voice note recorded</span>
+          <span class="compose-chip" id="imageStatus">No image selected</span>
+          <span class="notice">Mic access works best on HTTPS or localhost.</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+(() => {
+  const messages = document.getElementById("messages");
+  const chatForm = document.getElementById("chatForm");
+  const messageInput = document.getElementById("messageInput");
+  const imageInput = document.getElementById("image_input");
+  const imageStatus = document.getElementById("imageStatus");
+  const voiceBtn = document.getElementById("voiceBtn");
+  const recordStatus = document.getElementById("recordStatus");
+  const speedTag = document.getElementById("speedTag");
+
+  let mediaRecorder = null;
+  let audioChunks = [];
+  let recordedBlob = null;
+  let recordingStartedAt = null;
+
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function currentTimeLabel() {
+    const now = new Date();
+    return now.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  }
+
+  function secondsToLabel(totalSeconds) {
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = String(totalSeconds % 60).padStart(2, "0");
+    return `${mins}:${secs}`;
+  }
+
+  function scrollToBottom() {
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  function appendBubble({ side = "sent", text = "", audioUrl = "", duration = "0:00", imageUrl = "", transcript = "", description = "" }) {
+    const bubble = document.createElement("div");
+    bubble.className = `bubble ${side}`;
+
+    let inner = "";
+    if (text) {
+      inner += `<p>${escapeHtml(text)}</p>`;
+    }
+    if (audioUrl) {
+      inner += `
+        <div class="voice-bubble">
+          <div class="voice-pill">
+            <span>🎙️</span>
+            <div class="voice-wave"></div>
+            <span class="voice-duration">${escapeHtml(duration)}</span>
+          </div>
+          <audio controls src="${audioUrl}"></audio>
+          ${transcript ? `<div class="media-label">Transcribed: "${escapeHtml(transcript)}"</div>` : ""}
+        </div>
+      `;
+    }
+    if (imageUrl) {
+      inner += `<img src="${imageUrl}" alt="shared image" style="display:block;width:min(100%,320px);border-radius:16px;margin-top:10px;">`;
+      if (description) {
+        inner += `<div class="media-label">Description: "${escapeHtml(description)}"</div>`;
+      }
+    }
+    inner += `<span class="time">${currentTimeLabel()}</span>`;
+    bubble.innerHTML = inner;
+    messages.appendChild(bubble);
+    scrollToBottom();
+  }
+
+  function resetVoice() {
+    recordedBlob = null;
+    audioChunks = [];
+    recordStatus.textContent = "No voice note recorded";
+    voiceBtn.classList.remove("recording");
+    voiceBtn.textContent = "🎙️";
+  }
+
+  function setDemoSpeed() {
+    const samples = [
+      "Internet speed: 3.2 Mbps",
+      "Internet speed: 7.8 Mbps",
+      "Internet speed: 1.9 Mbps",
+      "Internet speed: 5.4 Mbps"
+    ];
+    const chosen = samples[Math.floor(Math.random() * samples.length)];
+    speedTag.textContent = chosen;
+  }
+
+  async function startRecording() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof MediaRecorder === "undefined") {
+      recordStatus.textContent = "Recording is not supported in this browser";
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunks = [];
+      recordedBlob = null;
+      recordingStartedAt = Date.now();
+      mediaRecorder = new MediaRecorder(stream);
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          audioChunks.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const mimeType = mediaRecorder && mediaRecorder.mimeType ? mediaRecorder.mimeType : "audio/webm";
+        recordedBlob = new Blob(audioChunks, { type: mimeType });
+        const durationSeconds = Math.max(1, Math.round((Date.now() - recordingStartedAt) / 1000));
+        recordStatus.textContent = `Voice note ready: ${secondsToLabel(durationSeconds)}`;
+        voiceBtn.classList.remove("recording");
+        voiceBtn.textContent = "🎙️";
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      voiceBtn.classList.add("recording");
+      voiceBtn.textContent = "■";
+      recordStatus.textContent = "Recording… tap again to stop";
+    } catch (error) {
+      recordStatus.textContent = "Mic permission was blocked";
+    }
+  }
+
+  function stopRecording() {
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+      mediaRecorder.stop();
+    }
+  }
+
+  voiceBtn.addEventListener("click", async () => {
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+      stopRecording();
+    } else {
+      await startRecording();
+    }
+  });
+
+  imageInput.addEventListener("change", () => {
+    if (imageInput.files && imageInput.files[0]) {
+      imageStatus.textContent = `Image ready: ${imageInput.files[0].name}`;
+    } else {
+      imageStatus.textContent = "No image selected";
+    }
+  });
+
+  chatForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const text = messageInput.value.trim();
+    const hasText = text.length > 0;
+    const hasAudio = !!recordedBlob;
+    const hasImage = !!(imageInput.files && imageInput.files[0]);
+
+    if (!hasText && !hasAudio && !hasImage) return;
+
+    if (hasText) {
+      appendBubble({ side: "sent", text });
+    }
+
+    if (hasAudio) {
+      const audioUrl = URL.createObjectURL(recordedBlob);
+      const durationText = recordStatus.textContent.replace("Voice note ready: ", "") || "0:03";
+      appendBubble({
+        side: "sent",
+        text: hasText ? "" : "Sent a voice note",
+        audioUrl,
+        duration: durationText,
+        transcript: "you said something in the voice"
+      });
+    }
+
+    if (hasImage) {
+      const file = imageInput.files[0];
+      const imageUrl = URL.createObjectURL(file);
+      appendBubble({
+        side: "sent",
+        text: hasText ? "" : "Shared an image",
+        imageUrl,
+        description: "This image has something in it"
+      });
+    }
+
+    messageInput.value = "";
+    imageInput.value = "";
+    imageStatus.textContent = "No image selected";
+    resetVoice();
+  });
+
+  setDemoSpeed();
+  scrollToBottom();
+})();
+  </script>
+</body>
+</html>

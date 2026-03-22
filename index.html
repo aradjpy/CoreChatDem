@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CoreChat Mission Start</title>
+  <style>
+:root{
+  --bg:#050816;
+  --bg2:#0b1637;
+  --panel:#0d1430;
+  --text:#e9f2ff;
+  --muted:#8ea5d8;
+  --accent:#7cc2ff;
+  --accent2:#a07cff;
+  --pixel:#9ffcff;
+  --danger:#ff7d7d;
+  --line:rgba(255,255,255,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:"Courier New", monospace;
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(124,194,255,.15), transparent 22%),
+    radial-gradient(circle at 80% 15%, rgba(160,124,255,.18), transparent 20%),
+    linear-gradient(180deg, #040611 0%, #071129 60%, #03050d 100%);
+}
+.scanlines::before{
+  content:"";
+  position:fixed; inset:0;
+  background:linear-gradient(to bottom, rgba(255,255,255,.03) 50%, transparent 50%);
+  background-size:100% 4px;
+  pointer-events:none;
+  opacity:.18;
+  z-index:1;
+}
+.stars, .stars2{
+  position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image:
+    radial-gradient(2px 2px at 40px 60px, rgba(255,255,255,.8), transparent 55%),
+    radial-gradient(2px 2px at 180px 160px, rgba(255,255,255,.7), transparent 55%),
+    radial-gradient(1.5px 1.5px at 330px 40px, rgba(255,255,255,.8), transparent 55%),
+    radial-gradient(2px 2px at 470px 220px, rgba(255,255,255,.8), transparent 55%),
+    radial-gradient(1.5px 1.5px at 650px 100px, rgba(255,255,255,.7), transparent 55%),
+    radial-gradient(2px 2px at 890px 60px, rgba(255,255,255,.75), transparent 55%),
+    radial-gradient(1.5px 1.5px at 1040px 190px, rgba(255,255,255,.75), transparent 55%);
+  background-size:1200px 320px;
+  animation:drift 28s linear infinite;
+  opacity:.5;
+}
+.stars2{ animation-duration:45s; opacity:.25; transform:scale(1.15);}
+@keyframes drift{from{transform:translateY(0)}to{transform:translateY(120px)}}
+.wrap{
+  position:relative;
+  z-index:2;
+  min-height:100vh;
+  padding:32px 20px 80px;
+}
+.frame{
+  width:min(1180px, 100%);
+  margin:0 auto;
+  border:3px solid rgba(159,252,255,.35);
+  background:rgba(7,12,27,.78);
+  box-shadow:
+    0 0 0 4px rgba(124,194,255,.08),
+    0 0 60px rgba(124,194,255,.12),
+    inset 0 0 40px rgba(160,124,255,.06);
+  padding:32px;
+  position:relative;
+  overflow:hidden;
+}
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  gap:18px;
+  align-items:center;
+  margin-bottom:36px;
+  flex-wrap:wrap;
+}
+.brand{
+  display:flex; align-items:center; gap:14px;
+}
+.logo{
+  width:58px; height:58px;
+  border:3px solid rgba(159,252,255,.5);
+  display:grid; place-items:center;
+  background:linear-gradient(135deg, rgba(124,194,255,.2), rgba(160,124,255,.18));
+  color:var(--pixel);
+  font-weight:800;
+  font-size:1.5rem;
+  text-shadow:0 0 8px rgba(159,252,255,.55);
+}
+.title h1{
+  font-size:1.7rem;
+  letter-spacing:.08em;
+  color:var(--pixel);
+  text-shadow:0 0 12px rgba(159,252,255,.25);
+}
+.title p{
+  color:var(--muted);
+  font-size:.95rem;
+  margin-top:4px;
+}
+.badge{
+  border:2px solid rgba(255,255,255,.12);
+  padding:10px 14px;
+  color:var(--muted);
+  background:rgba(255,255,255,.04);
+}
+.grid{
+  display:grid;
+  grid-template-columns:1.08fr .92fr;
+  gap:42px;
+  align-items:start;
+}
+.story{
+  padding-top:20px;
+  padding-bottom:30px;
+}
+.story h2{
+  font-size:clamp(2.2rem, 5vw, 4.5rem);
+  line-height:.96;
+  margin-bottom:22px;
+  color:#fff4cc;
+  text-shadow:0 0 8px rgba(255,244,204,.14);
+  max-width:9ch;
+}
+.story p{
+  color:var(--muted);
+  line-height:1.95;
+  font-size:1rem;
+  max-width:64ch;
+}
+.typebox{
+  margin-top:24px;
+  min-height:180px;
+  padding:22px;
+  border:2px solid rgba(159,252,255,.22);
+  background:rgba(255,255,255,.03);
+  color:#def8ff;
+  line-height:1.95;
+  font-size:1rem;
+  box-shadow:inset 0 0 18px rgba(124,194,255,.05);
+}
+.cursor{display:inline-block; width:12px; animation:blink 1s step-end infinite;}
+@keyframes blink{50%{opacity:0}}
+.actions{
+  display:flex;
+  gap:18px;
+  flex-wrap:wrap;
+  margin-top:30px;
+}
+.btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:16px 22px;
+  border:2px solid rgba(159,252,255,.34);
+  background:rgba(124,194,255,.12);
+  color:var(--text);
+  font-weight:700;
+  text-decoration:none;
+  transition:transform .18s ease, box-shadow .18s ease, background .18s ease;
+  box-shadow:0 0 0 2px rgba(0,0,0,.15);
+}
+.btn:hover{
+  transform:translateY(-3px);
+  background:rgba(124,194,255,.2);
+  box-shadow:0 0 20px rgba(124,194,255,.18);
+}
+.btn.primary{
+  background:linear-gradient(135deg, rgba(124,194,255,.3), rgba(160,124,255,.28));
+  color:#f5fbff;
+}
+.panel{
+  border:2px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.035);
+  padding:24px;
+  margin-top:34px;
+}
+.panel h3{
+  color:var(--pixel);
+  margin-bottom:18px;
+  letter-spacing:.06em;
+}
+.mission-list{
+  display:grid;
+  gap:16px;
+}
+.mission-item{
+  padding:16px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(0,0,0,.16);
+}
+.mission-item strong{
+  display:block;
+  margin-bottom:7px;
+  color:#fff4cc;
+}
+.mission-item span{
+  color:var(--muted);
+  line-height:1.8;
+}
+.footer-note{
+  margin-top:24px;
+  color:var(--muted);
+  font-size:.92rem;
+  line-height:1.8;
+  max-width:60ch;
+}
+.ship-area{
+  position:relative;
+  min-height:720px;
+  padding:30px 10px 20px;
+}
+.pixel-ship{
+  position:absolute;
+  width:84px;
+  height:42px;
+  image-rendering: pixelated;
+  filter:drop-shadow(0 0 12px rgba(124,194,255,.22));
+}
+.pixel-ship::before,
+.pixel-ship::after{
+  content:"";
+  position:absolute;
+}
+.ship-1{
+  top:30px; right:40px;
+  background:
+    linear-gradient(to right,
+      transparent 0 8px, #9ffcff 8px 18px, #9ffcff 18px 28px, transparent 28px 32px,
+      #7cc2ff 32px 50px, #7cc2ff 50px 62px, #9ffcff 62px 72px, transparent 72px 84px),
+    linear-gradient(to right,
+      transparent 0 14px, #a07cff 14px 24px, #fff4cc 24px 60px, #a07cff 60px 70px, transparent 70px 84px);
+  background-size:100% 16px, 100% 16px;
+  background-position:0 6px, 0 22px;
+  background-repeat:no-repeat;
+}
+.ship-1::after{
+  left:30px; top:36px; width:22px; height:10px;
+  background:#ff9d5c;
+  box-shadow:0 0 10px rgba(255,157,92,.5);
+}
+.ship-2{
+  top:180px; left:20px; transform:scale(.9);
+  background:
+    linear-gradient(to right, transparent 0 6px, #9ffcff 6px 16px, #9ffcff 16px 24px, transparent 24px 28px, #7cc2ff 28px 52px, #9ffcff 52px 66px, transparent 66px 84px),
+    linear-gradient(to right, transparent 0 18px, #a07cff 18px 28px, #fff4cc 28px 58px, #a07cff 58px 68px, transparent 68px 84px);
+  background-size:100% 16px, 100% 16px;
+  background-position:0 6px, 0 22px;
+  background-repeat:no-repeat;
+}
+.ship-2::after{
+  left:26px; top:36px; width:28px; height:10px; background:#ff9d5c;
+}
+.ship-3{
+  bottom:120px; right:10px; transform:scale(1.1);
+  background:
+    linear-gradient(to right, transparent 0 10px, #9ffcff 10px 22px, transparent 22px 28px, #7cc2ff 28px 56px, #9ffcff 56px 72px, transparent 72px 84px),
+    linear-gradient(to right, transparent 0 14px, #a07cff 14px 24px, #fff4cc 24px 60px, #a07cff 60px 70px, transparent 70px 84px);
+  background-size:100% 16px, 100% 16px;
+  background-position:0 6px, 0 22px;
+  background-repeat:no-repeat;
+}
+.ship-3::after{
+  left:31px; top:36px; width:20px; height:10px; background:#ff9d5c;
+}
+.ship-4{
+  bottom:320px; left:90px; transform:scale(.78);
+  background:
+    linear-gradient(to right, transparent 0 10px, #9ffcff 10px 24px, transparent 24px 30px, #7cc2ff 30px 54px, #9ffcff 54px 68px, transparent 68px 84px),
+    linear-gradient(to right, transparent 0 18px, #a07cff 18px 28px, #fff4cc 28px 56px, #a07cff 56px 66px, transparent 66px 84px);
+  background-size:100% 16px, 100% 16px;
+  background-position:0 6px, 0 22px;
+  background-repeat:no-repeat;
+}
+.ship-4::after{
+  left:28px; top:36px; width:24px; height:10px; background:#ff9d5c;
+}
+.planet{
+  width:min(360px, 70vw);
+  aspect-ratio:1;
+  margin:120px auto 0;
+  border-radius:50%;
+  position:relative;
+  background:
+    radial-gradient(circle at 35% 32%, rgba(255,255,255,.34), transparent 14%),
+    radial-gradient(circle at 70% 65%, rgba(0,0,0,.26), transparent 44%),
+    linear-gradient(135deg, #153f85 0%, #1f6cc4 28%, #2db5d8 50%, #1350a9 70%, #09224f 100%);
+  box-shadow: inset -26px -36px 90px rgba(0,0,0,.35), 0 0 80px rgba(124,194,255,.18);
+}
+.planet::before,
+.planet::after{
+  content:"";
+  position:absolute;
+  background:linear-gradient(135deg,#79efcb,#52caa9);
+}
+.planet::before{
+  width:44%; height:26%; left:18%; top:22%;
+  border-radius:48% 52% 54% 46% / 40% 48% 52% 60%;
+}
+.planet::after{
+  width:28%; height:24%; right:18%; bottom:24%;
+  border-radius:64% 36% 53% 47% / 45% 58% 42% 55%;
+}
+.small{font-size:.92rem; color:var(--muted)}
+@media (max-width: 980px){
+  .grid{grid-template-columns:1fr; gap:34px}
+  .story h2{max-width:none}
+  .ship-area{min-height:560px}
+  .planet{margin-top:80px}
+}
+@media (max-width: 640px){
+  .wrap{padding:18px 12px 48px}
+  .frame{padding:20px}
+  .topbar{margin-bottom:22px}
+  .title h1{font-size:1.18rem}
+  .badge{font-size:.85rem}
+  .typebox{min-height:230px}
+  .actions{flex-direction:column; align-items:stretch}
+  .btn{width:100%}
+  .ship-area{min-height:430px; padding-top:10px}
+  .pixel-ship{transform:scale(.72)!important}
+  .ship-1{top:8px; right:4px}
+  .ship-2{top:110px; left:-8px}
+  .ship-3{bottom:62px; right:-10px}
+  .ship-4{bottom:212px; left:30px}
+  .planet{width:min(290px, 82vw); margin-top:130px}
+}
+  </style>
+</head>
+<body>
+  <div class="scanlines"></div>
+  <div class="stars"></div>
+  <div class="stars2"></div>
+
+  <div class="wrap">
+    <section class="frame">
+      <div class="topbar">
+        <div class="brand">
+          <div class="logo">C</div>
+          <div class="title">
+            <h1>CORECHAT // MISSION START</h1>
+            <p>worldwide communication project for people all accross the globe with bad internet connection</p>
+          </div>
+        </div>
+        <div class="badge">STATUS: READY FOR LAUNCH</div>
+      </div>
+
+      <div class="grid">
+        <div class="story">
+          <h2>Start the mission to connect the world.</h2>
+          <p>
+            This project imagines a communication system where people can discover others with similar interests and still communicate even when internet access is weak.
+          </p>
+
+          <div class="typebox" id="typebox"></div>
+
+          <div class="actions">
+            <a class="btn primary" href="chatroom_interactive_demo.html">Start your adventure</a>
+            <a class="btn" href="similar_people_demo.html">View similar people</a>
+          </div>
+
+          <div class="footer-note">
+            Goal: preserve human connection across different countries, devices, and network conditions.
+          </div>
+        </div>
+
+        <div>
+          <div class="ship-area" aria-hidden="true">
+            <div class="pixel-ship ship-1"></div>
+            <div class="pixel-ship ship-2"></div>
+            <div class="pixel-ship ship-3"></div>
+            <div class="pixel-ship ship-4"></div>
+            <div class="planet"></div>
+          </div>
+
+          <aside class="panel">
+            <h3>MISSION MODULES</h3>
+            <div class="mission-list">
+              <div class="mission-item">
+                <strong>Interest Matching</strong>
+                <span>Users discover people with similar interests instead of getting lost in random noise.</span>
+              </div>
+              <div class="mission-item">
+                <strong>Network Awareness</strong>
+                <span>The system checks internet speed and adapts the way messages are delivered when bandwidth is weak.</span>
+              </div>
+              <div class="mission-item">
+                <strong>Voice Fallback</strong>
+                <span>Voice can be recorded, then turned into lighter text-based meaning to keep the message accessible.</span>
+              </div>
+              <div class="mission-item">
+                <strong>Image Description</strong>
+                <span>Images can be transformed into simple descriptive text so more people can stay in the conversation.</span>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+(() => {
+  const target = document.getElementById("typebox");
+  const lines = [
+    "Orbiting across the globe, CoreChat is designed for people who want connection without being blocked by low bandwidth.",
+    "The system matches people through shared interests, then adapts communication when internet speed drops.",
+    "Voice can fall back into transcription. Images can fall back into description. The goal is not to be another chatroom.",
+    "We all know that not everywhere in the world can connect with other people so we emphasize on making it easier for a global connection."
+  ];
+
+  let lineIndex = 0;
+  let charIndex = 0;
+  let rendered = "";
+
+  function type() {
+    if (lineIndex >= lines.length) {
+      target.innerHTML = rendered + '<span class="cursor">█</span>';
+      return;
+    }
+
+    const current = lines[lineIndex];
+    rendered += current.charAt(charIndex);
+    charIndex++;
+
+    if (charIndex >= current.length) {
+      rendered += "<br><br>";
+      charIndex = 0;
+      lineIndex++;
+      target.innerHTML = rendered + '<span class="cursor">█</span>';
+      setTimeout(type, 520);
+      return;
+    }
+
+    target.innerHTML = rendered + '<span class="cursor">█</span>';
+    setTimeout(type, 17);
+  }
+
+  type();
+})();
+  </script>
+</body>
+</html>
